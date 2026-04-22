@@ -5,30 +5,59 @@ import Link from "next/link";
 import useBasket from "@/store/Basket";
 import { useEffect, useState } from "react";
 
+const allowedCategories = ["beauty", "home-decoration", "skin-care", "sunglasses", "tops", "womens-bags", "womens-dresses", "womens-jewellery", "womens-shoes", "womens-watches", "fragrances"];
+
 const ProductList = () => {
-  const [products, setProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
+  const [activeCategory, setActiveCategory] = useState("All");
   const addToCart = useBasket((state) => state.addToCart);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("https://dummyjson.com/products");
-        const data = await response.json();
-
-        setProducts(data.products);
+        const promises = allowedCategories.map((category) =>
+          fetch(`https://dummyjson.com/products/category/${category}`)
+            .then((res) => res.json())
+            .then((data) => data.products),
+        );
+        const results = await Promise.all(promises);
+        setAllProducts(results.flat());
       } catch (error) {
-        console.error("Fejl ved hentning af produkter:", error);
+        console.error("Failed to fetch products:", error);
       }
     };
 
     fetchProducts();
   }, []);
 
+  const filteredProducts = activeCategory === "All" ? allProducts : allProducts.filter((product) => product.category === activeCategory);
+
   return (
     <div className="flex-1 justify-start ">
+      {/* Selve filter knapperne */}
+      <div className="flex flex-wrap gap-2 px-10 pt-5">
+        <button
+          onClick={() => setActiveCategory("All")}
+          className={`font-inria border px-3 py-1 rounded-full text-sm cursor-pointer transition-all
+            ${activeCategory === "All" ? "bg-black text-white border-black" : "border-black"}`}
+        >
+          All
+        </button>
+        {allowedCategories.map((category) => (
+          <button
+            key={category}
+            onClick={() => setActiveCategory(category)}
+            className={`font-inria border px-3 py-1 rounded-full text-sm cursor-pointer transition-all capitalize
+              ${activeCategory === category ? "bg-black text-white border-black" : "border-black"}`}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
+
       <div className=" bg-[#FAF6EA] rounded-2xl p-4 mr-10 mt-5 mb-5 ml-10 h-[calc(100vh-100px)] overflow-y-auto">
         <ul className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6 justify-items-center">
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <li key={product.id} className="bg-white w-ful mb-5 rounded-lg shadow-md">
               <div className="relative">
                 <div className="absolute top-4 right-4">
