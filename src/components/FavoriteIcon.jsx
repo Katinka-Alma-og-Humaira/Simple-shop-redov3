@@ -1,7 +1,7 @@
 "use client";
 import { FaRegHeart } from "react-icons/fa";
 import { FaHeart } from "react-icons/fa";
-import useFavorites from "@/store/favorite";
+import useFavorites from "@/store/Favorite";
 // test
 
 const FavoriteIcon = ({ id, product }) => {
